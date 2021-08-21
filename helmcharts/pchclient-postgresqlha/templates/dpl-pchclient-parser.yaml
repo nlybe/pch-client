@@ -29,7 +29,7 @@ spec:
         configMap:
           name:  {{ .Values.pchClientParser.appName }}-cm
       containers:
-      - image: "{{ .Values.pchClientParser.image.repository }}:{{ .Values.pchClientParser.image.tag }}"
+      - image: "{{ .Values.pchClientParser.image.repository }}:{{ .Values.pchClientParser.image.pchclientparsertag }}"
         imagePullPolicy: {{ .Values.pchClientParser.image.pullPolicy }}
         name:  {{ .Values.pchClientParser.appName }}
         volumeMounts:

@@ -23,7 +23,7 @@ spec:
         env: {{ .Values.environment }}
     spec:
       containers:
-      - image: "{{ .Values.pchClientUI.image.repository }}:{{ .Values.pchClientUI.image.tag }}"
+      - image: "{{ .Values.pchClientUI.image.repository }}:{{ .Values.pchClientUI.image.pchclientuitag }}"
         imagePullPolicy: {{ .Values.pchClientUI.image.pullPolicy }}
         name: {{ .Values.pchClientUI.appName }}
         resources:
