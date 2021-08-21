@@ -34,7 +34,7 @@ jobs:
           echo "::set-output name=BUILD_NO::${d}_${{ github.run_number }}"
 
       - name: Print version
-        run: echo "The current version is the ${{ steps.version-generator.outputs.BUILD_NO }}"
+        run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
 
       # # Build and push the PCH Client UI
       # - uses: mr-smithers-excellent/docker-build-push@v5
