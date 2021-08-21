@@ -44,7 +44,7 @@ jobs:
           image: nlyberakis/pchclient-parser
           tags: v1, latest
           registry: docker.io
-          dockerfile: ui/Dockerfile
+          dockerfile: parser/Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           directory: parser
