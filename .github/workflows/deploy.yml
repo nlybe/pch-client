@@ -34,24 +34,26 @@ jobs:
           echo "::set-output name=BUILD_NO::${d}_${{ github.run_number }}"
 
       - name: Print version
-        run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
+        run: echo "The current version is the ${{ steps.version-generator.outputs.BUILD_NO }}"
 
-      - uses: mr-smithers-excellent/docker-build-push@v5
-        name: Build & push PCH Client UI
-        with:
-          image: nlyberakis/pchclient-ui
-          tags: ${{ steps.version-generator.outputs.BUILD_NO }}, latest
-          registry: docker.io
-          dockerfile: ui/Dockerfile
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          directory: ui
+      # # Build and push the PCH Client UI
+      # - uses: mr-smithers-excellent/docker-build-push@v5
+      #   name: Build & push the PCH Client UI
+      #   with:
+      #     image: nlyberakis/pchclient-ui
+      #     tags: ${{ steps.version-generator.outputs.BUILD_NO }}, latest
+      #     registry: docker.io
+      #     dockerfile: ui/Dockerfile
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      #     directory: ui
 
+      # # Build and push the PCH Client Parser
       # - uses: mr-smithers-excellent/docker-build-push@v5
       #   name: Build & push PCH Client Parser
       #   with:
       #     image: nlyberakis/pchclient-parser
-      #     tags: v1, latest
+      #     tags: ${{ steps.version-generator.outputs.BUILD_NO }}, latest
       #     registry: docker.io
       #     dockerfile: parser/Dockerfile
       #     username: ${{ secrets.DOCKER_USERNAME }}
