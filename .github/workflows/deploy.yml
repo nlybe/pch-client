@@ -43,7 +43,7 @@ jobs:
           file_to_update="helmcharts/pchclient/values.yaml"
           uitag="pchclientuitag"
           parsertag="pchclientparsertag"
-          sed -i "s/${uitag}:.*\$/${uitag}: ${{ steps.version-generator.outputs.BUILD_NO }/g" ${file_to_update}
+          sed -i "s/${uitag}:.*\$/${uitag}: ${{ steps.version-generator.outputs.BUILD_NO }}/g" ${file_to_update}
 
       # # Build and push the PCH Client UI
       # - uses: mr-smithers-excellent/docker-build-push@v5
