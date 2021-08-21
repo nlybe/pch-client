@@ -61,7 +61,7 @@ jobs:
           echo "###########"
           d=$(date +%Y%m%d)
           echo "$d"
-          echo '::set-output name=BUILD_NO::$d_${{ github.run_number }}'
+          echo '::set-output name=BUILD_NO::${d}_${{ github.run_number }}'
 
       - name: Print version
         run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
