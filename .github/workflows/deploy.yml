@@ -60,5 +60,5 @@ jobs:
           echo "###########"
           d=$(date +%Y%m%d)
           echo "$d"
-          run: echo '::set-output name=BUILD_NO::$d_${{ github.run_number }}'
+          echo '::set-output name=BUILD_NO::$d_${{ github.run_number }}'
 
