@@ -23,20 +23,29 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: ls -las
+      # Generate version based on current date and run number
+      - name: Version generator
+        id: version-generator
+        run: |
+          # echo ${{ github.run_id }}
+          # echo ${{ github.run_number }}
+          d=$(date +%Y%m%d)
+          echo "$d"
+          echo "::set-output name=BUILD_NO::${d}_${{ github.run_number }}"
 
-      # - uses: mr-smithers-excellent/docker-build-push@v5
-      #   name: Build & push PCH Client UI
-      #   with:
-      #     image: nlyberakis/pchclient-ui
-      #     tags: v1, latest
-      #     registry: docker.io
-      #     dockerfile: ui/Dockerfile
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
-      #     directory: ui
+      - name: Print version
+        run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
+
+      - uses: mr-smithers-excellent/docker-build-push@v5
+        name: Build & push PCH Client UI
+        with:
+          image: nlyberakis/pchclient-ui
+          tags: ${{ steps.version-generator.outputs.BUILD_NO }}, latest
+          registry: docker.io
+          dockerfile: ui/Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          directory: ui
 
       # - uses: mr-smithers-excellent/docker-build-push@v5
       #   name: Build & push PCH Client Parser
@@ -48,21 +57,4 @@ jobs:
       #     username: ${{ secrets.DOCKER_USERNAME }}
       #     password: ${{ secrets.DOCKER_PASSWORD }}
       #     directory: parser
-
-      # Runs a set of commands using the runners shell
-      - name: Get version
-        id: version-generator
-        run: |
-          echo ${{ github.run_id }}
-          echo ${{ github.run_number }}
-          buildno=${{ github.run_id }}_${{ github.run_number }}
-          echo "###########"
-          echo $buildno
-          echo "###########"
-          d=$(date +%Y%m%d)
-          echo "$d"
-          echo "::set-output name=BUILD_NO::${d}_${{ github.run_number }}"
-
-      - name: Print version
-        run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
 
