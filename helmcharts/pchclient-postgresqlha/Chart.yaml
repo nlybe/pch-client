@@ -1,0 +1,11 @@
+apiVersion: v2
+name: pchclient
+description: Helm chart for pch-client apps
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: postgresql-ha
+    version: 7.8.8
+    repository: https://charts.bitnami.com/bitnami

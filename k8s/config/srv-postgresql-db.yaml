@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    project: pchclient
+    app: postgresql-db
+    env: dev
+  name:  postgresql-db
+  namespace: pchclient-dev
+spec:
+  ports:
+  - name: http
+    port: 5432
+    protocol: TCP
+    targetPort: http
+  selector:
+    project: pchclient
+    app: postgresql-db
+    env: dev
+  type: ClusterIP

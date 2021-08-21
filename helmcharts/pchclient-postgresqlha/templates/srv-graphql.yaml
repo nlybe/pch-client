@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    project: {{ .Values.project }}
+    app: {{ .Values.graphql.appName }}
+    env: {{ .Values.environment }}
+  name:  {{ .Values.graphql.appName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - name: http
+    port: {{ .Values.graphql.service.port }}
+    protocol: TCP
+    targetPort: http
+  selector:
+    project: {{ .Values.project }}
+    app: {{ .Values.graphql.appName }}
+    env: {{ .Values.environment }}
+  type: {{ .Values.graphql.service.type }}

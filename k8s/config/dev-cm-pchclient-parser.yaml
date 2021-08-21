@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pchclient-parser-cm
+  namespace: pchclient-dev
+data:  
+  parser.yml: |
+    db:
+      host: postgresql-db
+      port: 5432
+      user: ioannis
+      password: ioannissecret
+      database: ioannisdb  
+
+    parser:
+      server_limit: 50
+      protocol: IPv6
+      ixp:
+      - DE-CIX Marseille
+      city:
+      - Marseille
+      country:
+      - France
+ 
+  

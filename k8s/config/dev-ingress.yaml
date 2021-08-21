@@ -1,0 +1,53 @@
+# apiVersion: networking.k8s.io/v1beta1
+# kind: Ingress
+# metadata:
+#   name: pchclient-ingress
+#   annotations:
+#     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+#     traefik.ingress.kubernetes.io/router.tls: "false"
+# spec:
+#   rules:
+#   - host: pchclientui.local
+#     http:
+#       paths:
+#         - path: /
+#           backend:
+#             serviceName: pchclient-ui
+#             servicePort: 80
+#   - host: hasura.local
+#     http:
+#       paths:          
+#         - path: /
+#           backend:
+#             serviceName: graphql
+#             servicePort: 8080
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pchclient-ingress
+  namespace: pchclient-dev
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: pchclientui.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pchclient-ui
+            port: 
+              number: 80
+  - host: hasura.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: graphql
+            port: 
+              number: 8080

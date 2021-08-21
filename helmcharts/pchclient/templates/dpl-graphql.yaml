@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.graphql.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    project: {{ .Values.project }}
+    app: {{ .Values.graphql.appName }}
+    env: {{ .Values.environment }}
+spec:
+  selector:
+    matchLabels:
+      project: {{ .Values.project }}
+      app: {{ .Values.graphql.appName }}
+      env: {{ .Values.environment }}
+  replicas: {{ .Values.graphql.replicaCount }}
+  template:
+    metadata:
+      labels:
+        project: {{ .Values.project }}
+        app: {{ .Values.graphql.appName }}
+        env: {{ .Values.environment }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/cm-graphql.yaml") . | sha256sum }}
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name: {{ .Values.graphql.appName }}-cm
+      containers:
+      - image: "{{ .Values.graphql.image.repository }}:{{ .Values.graphql.image.tag }}"
+        imagePullPolicy: {{ .Values.graphql.image.pullPolicy }}
+        name: {{ .Values.graphql.appName }}
+        volumeMounts:
+        - name: configvlm
+          mountPath: /hasura-migrations
+        resources:
+{{ toYaml .Values.graphql.resources | indent 10 }}
+        env:
+        - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.project }}-configmap
+              key: HASURA_GRAPHQL_ENABLE_CONSOLE
+        - name: HASURA_GRAPHQL_DEV_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.project }}-configmap
+              key: HASURA_GRAPHQL_DEV_MODE
+        - name: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.project }}-configmap
+              key: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+        - name: HASURA_GRAPHQL_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.project }}-configmap
+              key: HASURA_GRAPHQL_SERVER_PORT
+        - name: HASURA_GRAPHQL_CORS_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.project }}-configmap
+              key: HASURA_GRAPHQL_CORS_DOMAIN
+        - name: HASURA_GRAPHQL_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.project }}-secrets 
+              key: hasura_graphql_database_url_v1
+        ports:
+        - name: "http"
+          containerPort: 8080
+          protocol: "TCP"

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: graphql-cm
+  namespace: pchclient-dev
+data:  
+  metadata.yaml: |
+    version: 2
+    tables:
+    - table:
+        schema: public
+        name: ixp_server_data
+ 
+  

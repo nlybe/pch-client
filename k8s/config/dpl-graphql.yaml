@@ -1,0 +1,88 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graphql-engine
+  namespace: pchclient-dev
+  labels:
+    project: pchclient
+    app: graphql
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      project: pchclient
+      app: graphql
+      env: dev
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        project: pchclient
+        app: graphql
+        env: dev
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name: graphql-cm
+      # - name: hasura-disk
+      #   persistentVolumeClaim:
+      #     claimName: graphql-pvc
+      containers:
+      - image: hasura/graphql-engine:v1.3.3.cli-migrations
+        imagePullPolicy: IfNotPresent
+        name: graphql-engine
+        volumeMounts:
+        - name: configvlm
+          mountPath: /hasura-migrations
+        # - mountPath: "/hasura-migrations"
+        #   name: hasura-disk
+        #   readOnly: false
+        resources:
+          limits:
+            cpu: 500m
+            memory: 768Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+        env:
+        - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+          valueFrom:
+            configMapKeyRef:
+              name: pchclient-configmap
+              key: HASURA_GRAPHQL_ENABLE_CONSOLE
+        - name: HASURA_GRAPHQL_DEV_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: pchclient-configmap
+              key: HASURA_GRAPHQL_DEV_MODE
+        - name: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+          valueFrom:
+            configMapKeyRef:
+              name: pchclient-configmap
+              key: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+        - name: HASURA_GRAPHQL_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: pchclient-configmap
+              key: HASURA_GRAPHQL_SERVER_PORT
+        # - name: HASURA_GRAPHQL_SERVER_HOST
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: pchclient-configmap
+        #       key: HASURA_GRAPHQL_SERVER_HOST
+        - name: HASURA_GRAPHQL_CORS_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: pchclient-configmap
+              key: HASURA_GRAPHQL_CORS_DOMAIN
+        - name: HASURA_GRAPHQL_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: pchclient-dev-secrets
+              key: hasura_graphql_database_url_v1
+        ports:
+        - name: "http"
+          containerPort: 8080
+          protocol: "TCP"

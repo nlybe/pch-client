@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.postgresQL.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    project: {{ .Values.project }}
+    app: {{ .Values.postgresQL.appName }}
+    env: {{ .Values.environment }}
+spec:
+  serviceName: {{ .Values.postgresQL.appName }}-service
+  selector:
+    matchLabels:
+      project: {{ .Values.project }}
+      app: {{ .Values.postgresQL.appName }}
+      env: {{ .Values.environment }}
+  replicas: {{ .Values.postgresQL.replicaCount }}
+  updateStrategy:
+    type: {{ .Values.postgresQL.updateStrategy }}
+  template:
+    metadata:
+      labels:
+        project: {{ .Values.project }}
+        app: {{ .Values.postgresQL.appName }}
+        env: {{ .Values.environment }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-secrets.yaml") . | sha256sum }}
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name:  {{ .Values.postgresQL.appName }}-scripts-cm
+      containers:
+      - image: "{{ .Values.postgresQL.image.repository }}:{{ .Values.postgresQL.image.tag }}"
+        imagePullPolicy: {{ .Values.postgresQL.image.pullPolicy }}
+        name: {{ .Values.postgresQL.appName }}
+        resources:
+{{ toYaml .Values.postgresQL.resources | indent 10 }} 
+        volumeMounts:
+        - name: pvc-disk
+          mountPath: /var/lib/postgresql/data
+        - name: configvlm
+          mountPath: /docker-entrypoint-initdb.d
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.project }}-secrets
+              key: postgres_db_v1
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.project }}-secrets
+              key: postgres_user_v1
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.project }}-secrets
+              key: postgres_password_v1
+        ports:
+        - name: "http"
+          containerPort: 5432
+          protocol: "TCP"
+  # Volume Claim
+  volumeClaimTemplates:
+  - metadata:
+      name: pvc-disk
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-storage"
+      resources:
+        requests:
+          storage: 1Gi

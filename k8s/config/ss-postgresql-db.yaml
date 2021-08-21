@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-db
+  namespace: pchclient-dev
+  labels:
+    project: pchclient
+    app: postgresql-db
+    env: dev
+spec:
+  serviceName: postgresql-db-service
+  selector:
+    matchLabels:
+      project: pchclient
+      app: postgresql-db
+      env: dev
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        project: pchclient
+        app: postgresql-db
+        env: dev
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name: postgresql-db-scripts-cm
+      containers:
+      - image: postgres:latest
+        imagePullPolicy: IfNotPresent
+        name: postgresql-db
+        volumeMounts:
+        - name: pvc-disk
+          mountPath: /var/lib/postgresql/data
+        - name: configvlm
+          mountPath: /docker-entrypoint-initdb.d
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: pchclient-dev-secrets
+              key: postgres_db_v1
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: pchclient-dev-secrets
+              key: postgres_user_v1
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pchclient-dev-secrets
+              key: postgres_password_v1
+        ports:
+        - name: "http"
+          containerPort: 5432
+          protocol: "TCP"
+  # Volume Claim
+  volumeClaimTemplates:
+  - metadata:
+      name: pvc-disk
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-storage"
+      resources:
+        requests:
+          storage: 1Gi

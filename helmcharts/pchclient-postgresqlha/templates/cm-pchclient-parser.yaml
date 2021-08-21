@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ .Values.pchClientParser.appName }}-cm
+  namespace: {{ .Values.namespace }}
+data:  
+  parser.yml: |
+    db:
+      host: {{ .Values.secrets.postgres_host | b64dec }}
+      port: {{ .Values.secrets.postgres_port | b64dec }}
+      user: {{ .Values.secrets.postgres_user | b64dec }}
+      password: {{ .Values.secrets.postgres_password | b64dec }}
+      database: {{ .Values.secrets.postgres_db | b64dec }}
+
+    # parser:
+    #   server_limit: 50
+    #   protocol: IPv4
+    #   ixp: 'DE-CIX Marseille'
+    #   city: 'Marseille'
+    #   country: 'France'
+
+    parser:
+      server_limit: 50
+      protocol: IPv6
+      ixp:
+      - DE-CIX Marseille
+      city:
+      - Marseille
+      country:
+      - France
+ 
+  

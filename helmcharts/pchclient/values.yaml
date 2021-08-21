@@ -1,0 +1,124 @@
+# Default values for pchclient.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+environment: dev
+namespace: pchclient-dev
+project: pchclient
+
+pchClientUI:
+  appName: pchclient-ui
+  replicaCount: 1
+
+  image:
+    repository: nlyberakis/pchclient-ui
+    pullPolicy: IfNotPresent
+    tag: 2
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi  
+
+pchClientParser:
+  appName: pchclient-parser
+  replicaCount: 1
+
+  image:
+    repository: nlyberakis/pchclient-parser
+    pullPolicy: IfNotPresent
+    tag: 1
+  
+  conf:
+    hasura_graphql_enable_console: "true"
+    hasura_graphql_dev_mode: "true"
+    hasura_graphql_enabled_log_types: startup, http-log, webhook-log, websocket-log, query-log
+    hasura_graphql_server_port: "8080"
+    hasura_graphql_cors_domain: "*"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi 
+
+postgresQL: 
+  appName: postgresql-db
+  replicaCount: 1
+  updateStrategy: RollingUpdate
+
+  image:
+    repository: postgres
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  service:
+    type: ClusterIP
+    port: 5432
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi 
+
+  pv:
+    path: /etc/codebgp/data/db
+    nodes: 
+      - k3d-codebgp-agent-0
+      - k3d-codebgp-agent-1
+
+graphql:
+  appName: graphql
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  image:
+    repository: hasura/graphql-engine
+    pullPolicy: IfNotPresent
+    tag: "v1.3.3.cli-migrations"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: 
+    ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    pchClientUI:
+      host: pchclientui.local
+      path: /
+      pathType: Prefix
+    graphql:
+      host: hasura.local
+      path: /
+      pathType: Prefix
+
+secrets:
+  postgres_db: aW9hbm5pc2Ri
+  postgres_user: aW9hbm5pcw==
+  postgres_password: aW9hbm5pc3NlY3JldA==
+  postgres_port: NTQzMg==
+  postgres_host: cG9zdGdyZXNxbC1kYg== 
+  hasura_graphql_database_url: cG9zdGdyZXM6Ly9pb2FubmlzOmlvYW5uaXNzZWNyZXRAcG9zdGdyZXNxbC1kYjo1NDMyL2lvYW5uaXNkYg==

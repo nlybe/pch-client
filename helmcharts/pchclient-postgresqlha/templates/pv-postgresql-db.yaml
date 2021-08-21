@@ -1,0 +1,55 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgresql-pv-0
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: {{ .Values.postgresQL.pv.path0 }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: 
+{{ toYaml .Values.postgresQL.pv.nodes | indent 10 }}  
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgresql-pv-1
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: {{ .Values.postgresQL.pv.path1 }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: 
+{{ toYaml .Values.postgresQL.pv.nodes | indent 10 }}  
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer

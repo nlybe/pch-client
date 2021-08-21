@@ -1,0 +1,33 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.project }}-ingress
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  - host: {{ .Values.ingress.hosts.pchClientUI.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.hosts.pchClientUI.path }}
+        pathType: {{ .Values.ingress.hosts.pchClientUI.pathType }}
+        backend:
+          service:
+            name: {{ .Values.pchClientUI.appName }}
+            port: 
+              number: {{ .Values.pchClientUI.service.port }}
+  - host: {{ .Values.ingress.hosts.graphql.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.hosts.graphql.path }}
+        pathType: {{ .Values.ingress.hosts.graphql.pathType }}
+        backend:
+          service:
+            name: {{ .Values.graphql.appName }}
+            port: 
+              number: {{ .Values.graphql.service.port }}
+{{- end }}

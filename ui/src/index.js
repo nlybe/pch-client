@@ -8,14 +8,14 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { WebSocketLink } from '@apollo/client/link/ws';
 
 const wsLink = new WebSocketLink({
-  uri: 'ws://localhost:8001/v1/graphql',
+  uri: 'ws://hasura.local:8080/v1/graphql',
   options: {
     reconnect: true
   }
 });
 
 const httpLink = new HttpLink({
-  uri: 'http://localhost:8001/v1/graphql'
+  uri: 'http://hasura.local:8080/v1/graphql'
 });
 
 const client = new ApolloClient({

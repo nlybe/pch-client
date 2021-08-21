@@ -1,0 +1,336 @@
+# Default values for pchclient.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+environment: dev
+namespace: pchclient-dev
+project: pchclient
+
+pchClientUI:
+  appName: pchclient-ui
+  replicaCount: 1
+
+  image:
+    repository: nlyberakis/pchclient-ui
+    pullPolicy: IfNotPresent
+    tag: 2
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi  
+
+pchClientParser:
+  appName: pchclient-parser
+  replicaCount: 1
+
+  image:
+    repository: nlyberakis/pchclient-parser
+    pullPolicy: IfNotPresent
+    tag: 1
+  
+  conf:
+    hasura_graphql_enable_console: "true"
+    hasura_graphql_dev_mode: "true"
+    hasura_graphql_enabled_log_types: startup, http-log, webhook-log, websocket-log, query-log
+    hasura_graphql_server_port: "8080"
+    hasura_graphql_cors_domain: "*"
+    hasura_graphql_migrations_server_timeout: "300"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+graphql:
+  appName: graphql
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  image:
+    repository: hasura/graphql-engine
+    pullPolicy: IfNotPresent
+    tag: "v1.3.3.cli-migrations"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: 
+    ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    pchClientUI:
+      host: pchclientui.local
+      path: /
+      pathType: Prefix
+    graphql:
+      host: hasura.local
+      path: /
+      pathType: Prefix
+
+postgresQL: 
+  pv:
+    path0: /etc/codebgp/data/db0
+    path1: /etc/codebgp/data/db1
+    nodes: 
+      - k3d-codebgp-agent-0
+      - k3d-codebgp-agent-1
+
+secrets:
+  postgres_db: aW9hbm5pc2Ri
+  postgres_user: aW9hbm5pcw==
+  postgres_password: aW9hbm5pc3NlY3JldA==
+  postgres_port: NTQzMg==
+  postgres_host: cGNoY2xpZW50LXBvc3RncmVzcWwtaGEtcGdwb29s
+  hasura_graphql_database_url: cG9zdGdyZXM6Ly9pb2FubmlzOmlvYW5uaXNzZWNyZXRAcGNoY2xpZW50LXBvc3RncmVzcWwtaGEtcGdwb29sOjU0MzIvaW9hbm5pc2Ri
+  # hasura_graphql_database_url: cG9zdGdyZXM6Ly9oYXN1cmF1c2VyOmdtc3RwbHhyb25pQHBjaGNsaWVudC1wb3N0Z3Jlc3FsLWhhLXBncG9vbDo1NDMyL2lvYW5uaXNkYg==
+  # hasura_graphql_database_url: cG9zdGdyZXM6Ly9hZG1pbjphc3RhbmFwYW5lQHBjaGNsaWVudC1wb3N0Z3Jlc3FsLWhhLXBncG9vbDo1NDMyL2lvYW5uaXNkYg==
+  
+################
+# Subchart start
+postgresql-ha:
+  global:
+    storageClass: "local-storage"
+    
+  ## PostgreSQL parameters
+  postgresql:
+    replicaCount: 2
+    updateStrategyType: RollingUpdate
+    
+    username: ioannis
+    password: "ioannissecret"
+    database: "ioannisdb"
+    
+    repmgrUsername: repmgr
+    repmgrPassword: "astalavista"
+    repmgrDatabase: repmgr
+    
+    extendedConf: |-
+      volumePermissions.enabled = true
+    
+    initdbScripts:
+      my_init_script.sql: |
+        create table IXP_SERVER_DATA(
+          IXP VARCHAR(255),
+          COUNTRY VARCHAR(64),
+          CITY VARCHAR(64),
+          PROTOCOL VARCHAR(4),
+          RS_LOCAL_ASN INTEGER,
+          NUMBER_OF_RIB_ENTRIES INTEGER,
+          NUMBER_OF_PEERS INTEGER,
+          TOTAL_NUMBER_OF_NEIGHBORS INTEGER,
+          UPDATED_AT TIMESTAMP WITH TIME ZONE,
+          PRIMARY KEY (IXP, COUNTRY, CITY, PROTOCOL)
+        );
+    
+  pgpool:
+    adminUsername: admin
+    adminPassword: astanapane
+
+  metrics:
+    ## @param metrics.enabled Enable PostgreSQL Prometheus exporter
+    ##
+    enabled: false
+    ## K8s Security Context
+    ## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+    ## @param metrics.securityContext.enabled Enable security context for PostgreSQL Prometheus exporter
+    ## @param metrics.securityContext.runAsUser User ID for the PostgreSQL Prometheus exporter container
+    ##
+    securityContext:
+      enabled: true
+      runAsUser: 1001
+    ## Prometheus exporter containers' resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ## We usually recommend not to specify default resources and to leave this as a conscious
+    ## choice for the user. This also increases chances charts run on environments with little
+    ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+    ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    ## @param metrics.resources.limits The resources limits for the container
+    ## @param metrics.resources.requests The requested resources for the container
+    ##
+    resources:
+      ## Example:
+      ## limits:
+      ##    cpu: 250m
+      ##    memory: 256Mi
+      limits: {}
+      ## Examples:
+      ## requests:
+      ##    cpu: 250m
+      ##    memory: 256Mi
+      requests: {}
+    ## Prometheus exporter container's liveness probe
+    ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+    ## @param metrics.livenessProbe.enabled Enable livenessProbe
+    ## @param metrics.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+    ## @param metrics.livenessProbe.periodSeconds Period seconds for livenessProbe
+    ## @param metrics.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    ## @param metrics.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    ## @param metrics.livenessProbe.successThreshold Success threshold for livenessProbe
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 6
+    ## Prometheus exporter container's readiness probe
+    ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+    ## @param metrics.readinessProbe.enabled Enable readinessProbe
+    ## @param metrics.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+    ## @param metrics.readinessProbe.periodSeconds Period seconds for readinessProbe
+    ## @param metrics.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    ## @param metrics.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    ## @param metrics.readinessProbe.successThreshold Success threshold for readinessProbe
+    ##
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 6
+    ## Prometheus exporter container's startup probes
+    ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+    ## @param metrics.startupProbe.enabled Enable startupProbe
+    ## @param metrics.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+    ## @param metrics.startupProbe.periodSeconds Period seconds for startupProbe
+    ## @param metrics.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    ## @param metrics.startupProbe.failureThreshold Failure threshold for startupProbe
+    ## @param metrics.startupProbe.successThreshold Success threshold for startupProbe
+    ##
+    startupProbe:
+      enabled: false
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 10
+    ## @param metrics.annotations [object] Annotations for PostgreSQL Prometheus exporter service
+    ##
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9187"
+    ## @param metrics.customMetrics Additional custom metrics
+    ## ref: https://github.com/wrouesnel/postgres_exporter#adding-new-metrics-via-a-config-file
+    ## customMetrics:
+    ##   pg_database:
+    ##     query: "SELECT d.datname AS name, CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT') THEN pg_catalog.pg_database_size(d.datname) ELSE 0 END AS size_bytes FROM pg_catalog.pg_database d where datname not in ('template0', 'template1', 'postgres')"
+    ##     metrics:
+    ##       - name:
+    ##           usage: "LABEL"
+    ##           description: "Name of the database"
+    ##       - size_bytes:
+    ##           usage: "GAUGE"
+    ##           description: "Size of the database in bytes"
+    ##
+    customMetrics: ""
+    ## @param metrics.extraEnvVars An array to add extra environment variables to configure postgres-exporter
+    ## see: https://github.com/wrouesnel/postgres_exporter#environment-variables
+    ## For example:
+    ##  extraEnvVars:
+    ##  - name: PG_EXPORTER_DISABLE_DEFAULT_METRICS
+    ##    value: "true"
+    ##
+    extraEnvVars: {}
+    ## Enable this if you're using Prometheus Operator
+    ##
+    serviceMonitor:
+      ## @param metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
+      ##
+      enabled: false
+      ## @param metrics.serviceMonitor.namespace Optional namespace which Prometheus is running in
+      ## Fallback to the prometheus default unless specified
+      ##
+      namespace: ""
+      ## @param metrics.serviceMonitor.interval How frequently to scrape metrics (use by default, falling back to Prometheus' default)
+      ## e.g:
+      ## interval: 10s
+      ##
+      interval: ""
+      ## @param metrics.serviceMonitor.scrapeTimeout Service monitor scrape timeout
+      ## e.g:
+      ## scrapeTimeout: 10s
+      ##
+      scrapeTimeout: ""
+      ## @param metrics.serviceMonitor.selector [object] Defaults to what's used if you follow CoreOS Prometheus Install Instructions (https://github.com/bitnami/charts/tree/master/bitnami/kube-prometheus#tldr)
+      ## Prometheus Selector Label (https://github.com/bitnami/charts/tree/master/bitnami/kube-prometheus#prometheus-operator-parameters)
+      ## Kube Prometheus Selector Label (https://github.com/bitnami/charts/tree/master/bitnami/kube-prometheus#exporters)
+      ##
+      selector:
+        prometheus: kube-prometheus
+      ## @param metrics.serviceMonitor.relabelings ServiceMonitor relabelings. Value is evaluated as a template
+      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+      ##
+      relabelings: []
+      ## @param metrics.serviceMonitor.metricRelabelings ServiceMonitor metricRelabelings. Value is evaluated as a template
+      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+      ##
+      metricRelabelings: []
+
+  persistence:
+    ## @param persistence.enabled Enable data persistence
+    ##
+    enabled: true
+    ## @param persistence.existingClaim A manually managed Persistent Volume and Claim
+    ## If defined, PVC must be created manually before volume will be bound.
+    ## All replicas will share this PVC, using existingClaim with replicas > 1 is only useful in very special use cases.
+    ## The value is evaluated as a template.
+    ##
+    existingClaim: ""
+    ## @param persistence.storageClass Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ## set, choosing the default provisioner.
+    ##
+    storageClass: "local-storage"
+    ## @param persistence.mountPath The path the volume will be mounted at, useful when using different PostgreSQL images.
+    ##
+    mountPath: /bitnami/postgresql
+    
+    ## @param persistence.accessModes List of access modes of data volume
+    ##
+    accessModes:
+      - ReadWriteOnce
+    ## @param persistence.size Persistent Volume Claim size
+    ##
+    size: 1Gi
+    ## @param persistence.annotations Persistent Volume Claim annotations
+    ##
+    annotations: {}
+    ## @param persistence.selector Selector to match an existing Persistent Volume (this value is evaluated as a template)
+    ## selector:
+    ##   matchLabels:
+    ##     app: my-app
+    ##
+    selector: {}
+
+
+
+        
+        
+        
+
+

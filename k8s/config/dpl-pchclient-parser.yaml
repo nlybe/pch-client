@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pchclient-parser
+  namespace: pchclient-dev
+  labels:
+    project: pchclient
+    app: pchclient-parser
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      project: pchclient
+      app: pchclient-parser
+      env: dev
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        project: pchclient
+        app: pchclient-parser
+        env: dev
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name: pchclient-parser-cm
+      # - name: parser-disk
+      #   persistentVolumeClaim:
+      #     claimName: parser-pvc
+      containers:
+      # - image: k3d-codebgp-registry:44257/pchclientparser:local
+      - image: nlyberakis/pchclient-parser:1
+        name: pchclient-parser
+        volumeMounts:
+        - name: configvlm
+          mountPath: /config
+        # - mountPath: "/config"
+        #   name: parser-disk
+        #   readOnly: false
+        resources:
+          limits:
+            cpu: 500m
+            memory: 768Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi

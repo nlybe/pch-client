@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ .Values.pchClientParser.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    project: {{ .Values.project }}
+    app: {{ .Values.pchClientParser.appName }}
+    env: {{ .Values.environment }}
+spec:
+  selector:
+    matchLabels:
+      project: {{ .Values.project }}
+      app:  {{ .Values.pchClientParser.appName }}
+      env: {{ .Values.environment }}
+  replicas: {{ .Values.pchClientParser.replicaCount }}
+  template:
+    metadata:
+      labels:
+        project: {{ .Values.project }}
+        app:  {{ .Values.pchClientParser.appName }}
+        env: {{ .Values.environment }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/cm-pchclient-parser.yaml") . | sha256sum }}
+    spec:
+      volumes:
+      - name: configvlm
+        configMap:
+          name:  {{ .Values.pchClientParser.appName }}-cm
+      containers:
+      - image: "{{ .Values.pchClientParser.image.repository }}:{{ .Values.pchClientParser.image.tag }}"
+        imagePullPolicy: {{ .Values.pchClientParser.image.pullPolicy }}
+        name:  {{ .Values.pchClientParser.appName }}
+        volumeMounts:
+        - name: configvlm
+          mountPath: /config
+        resources:
+{{ toYaml .Values.pchClientParser.resources | indent 10 }}

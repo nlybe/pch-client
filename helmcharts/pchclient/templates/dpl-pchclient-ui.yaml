@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.pchClientUI.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    project: {{ .Values.project }}
+    app: {{ .Values.pchClientUI.appName }}
+    env: {{ .Values.environment }}
+spec:
+  selector:
+    matchLabels:
+      project: {{ .Values.project }}
+      app: {{ .Values.pchClientUI.appName }}
+      env: {{ .Values.environment }}
+  replicas: {{ .Values.pchClientUI.replicaCount }}
+  template:
+    metadata:
+      labels:
+        project: {{ .Values.project }}
+        app: {{ .Values.pchClientUI.appName }}
+        env: {{ .Values.environment }}
+    spec:
+      containers:
+      - image: "{{ .Values.pchClientUI.image.repository }}:{{ .Values.pchClientUI.image.tag }}"
+        imagePullPolicy: {{ .Values.pchClientUI.image.pullPolicy }}
+        name: {{ .Values.pchClientUI.appName }}
+        resources:
+{{ toYaml .Values.pchClientUI.resources | indent 10 }} 
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        ports:
+        - name: "http"
+          containerPort: 80
+          protocol: "TCP"
