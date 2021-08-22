@@ -37,15 +37,6 @@ jobs:
       - name: Print version
         run: echo "The current version is ${{ steps.version-generator.outputs.BUILD_NO }}"
 
-      # Update the chart value.yaml with new image tags
-      - name: Update files with new image tags
-        run: |
-          file_to_update="helmcharts/pchclient/values.yaml"
-          uitag="pchclientuitag"
-          parsertag="pchclientparsertag"
-          sed -i "s/${uitag}:.*\$/${uitag}: ${{ steps.version-generator.outputs.BUILD_NO }}/g" ${file_to_update}
-          cat $file_to_update
-
       # # Build and push the PCH Client UI
       # - uses: mr-smithers-excellent/docker-build-push@v5
       #   name: Build & push the PCH Client UI
@@ -70,33 +61,43 @@ jobs:
       #     password: ${{ secrets.DOCKER_PASSWORD }}
       #     directory: parser
 
-      # # Commit changes with new version
-      # - uses: EndBug/add-and-commit@v7.2.1 
-      #   with:
-      #     # # The arguments for the `git add` command (see the paragraph below for more info)
-      #     # # Default: '.'
-      #     # add: 'src'
+      # Update the chart value.yaml with new image tags
+      - name: Update files with new image tags
+        run: |
+          file_to_update="helmcharts/pchclient/values.yaml"
+          uitag="pchclientuitag"
+          parsertag="pchclientparsertag"
+          sed -i "s/${uitag}:.*\$/${uitag}: ${{ steps.version-generator.outputs.BUILD_NO }}/g" ${file_to_update}
+          sed -i "s/${parsertag}:.*\$/${parsertag}: ${{ steps.version-generator.outputs.BUILD_NO }}/g" ${file_to_update}
+          cat $file_to_update
 
-      #     # Name of the branch to use, if different from the one that triggered the workflow
-      #     # Default: the branch that triggered the run
-      #     branch: main
+      # Commit changes with new version
+      - uses: EndBug/add-and-commit@v7.2.1 
+        with:
+          # # The arguments for the `git add` command (see the paragraph below for more info)
+          # # Default: '.'
+          # add: 'src'
 
-      #     # # The local path to the directory where your repository is located. You should use actions/checkout first to set it up
-      #     # # Default: '.'
-      #     # cwd: './path/to/the/repo'
+          # Name of the branch to use, if different from the one that triggered the workflow
+          # Default: the branch that triggered the run
+          branch: main
 
-      #     # # Determines the way the action fills missing author name and email. Three options are available:
-      #     # # - github_actor -> UserName <UserName@users.noreply.github.com>
-      #     # # - user_info -> Your Display Name <your-actual@email.com>
-      #     # # - github_actions -> github-actions <email associated with the github logo>
-      #     # # Default: github_actor
-      #     # default_author: github_actor
+          # # The local path to the directory where your repository is located. You should use actions/checkout first to set it up
+          # # Default: '.'
+          # cwd: './path/to/the/repo'
 
-      #     # The message for the commit
-      #     # Default: 'Commit from GitHub Actions (name of the workflow)'
-      #     message: 'Update new versions [skip ci]' 
+          # # Determines the way the action fills missing author name and email. Three options are available:
+          # # - github_actor -> UserName <UserName@users.noreply.github.com>
+          # # - user_info -> Your Display Name <your-actual@email.com>
+          # # - github_actions -> github-actions <email associated with the github logo>
+          # # Default: github_actor
+          # default_author: github_actor
+
+          # The message for the commit
+          # Default: 'Commit from GitHub Actions (name of the workflow)'
+          message: 'Update new versions [skip ci]' 
           
-      #     # # Arguments for the git tag command (the tag name always needs to be the first word not preceded by an hyphen)
-      #     # # Default: ''
-      #     # tag: 'v1.0.0 --force'
+          # # Arguments for the git tag command (the tag name always needs to be the first word not preceded by an hyphen)
+          # # Default: ''
+          # tag: 'v1.0.0 --force'
 
