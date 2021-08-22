@@ -13,7 +13,7 @@ pchClientUI:
   image:
     repository: nlyberakis/pchclient-ui
     pullPolicy: IfNotPresent
-    pchclientuitag: 2
+    pchclientuitag: 20210822_22
 
   service:
     type: ClusterIP
@@ -34,7 +34,7 @@ pchClientParser:
   image:
     repository: nlyberakis/pchclient-parser
     pullPolicy: IfNotPresent
-    pchclientparsertag: 1
+    pchclientparsertag: 20210822_22
   
   conf:
     hasura_graphql_enable_console: "true"
