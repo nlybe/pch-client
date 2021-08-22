@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: PCH Client CICD
 
 # Controls when the workflow will run
@@ -79,4 +77,25 @@ jobs:
 
           # The message for the commit. The [skip ci] is required for not trigger the CICD
           message: 'Update new versions [skip ci]' 
+
+      # # Copy the updated files to remote VM host which has access to Kubernetes cluster
+      # - name: Copy files via ssh key
+      #   uses: appleboy/scp-action@master
+      #   with:
+      #     host: ${{ secrets.VM_HOST }}
+      #     username: ${{ secrets.VM_USERNAME }}
+      #     port: ${{ secrets.VM_PORT }}
+      #     key: ${{ secrets.VM_KEY }}
+      #     source: "helmcharts/pchclient/*"
+      #     target: "~/helmcharts/pchclient"    
+
+      # # Run the helm upgrade commands to remote VM
+      # - name: multiple command
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.VM_HOST }}
+      #     username: ${{ secrets.VM_USERNAME }}
+      #     port: ${{ secrets.VM_PORT }}
+      #     key: ${{ secrets.VM_KEY }}
+      #     script: helm upgrade pchclient ~/helmcharts/pchclient
           
