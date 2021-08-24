@@ -5,7 +5,7 @@ If this path is different, the it should be replaced accordingly on **clusterK3d
 
 ## Deploy a K8s cluster locally and pch-client apps
 
-Used the tool **k3d** using the following command:
+Used the tool [k3d](https://k3d.io/) using the following commands:
 
 ```bash
 
@@ -30,20 +30,7 @@ docker tag pch-client_ui k3d-codebgp-registry:44257/pchclientui:local
 docker push k3d-codebgp-registry:44257/pchclientui:local
 
 # 5. On Deployment commands
-kubectl apply -f config/pv-postgresql-db.yaml
-kubectl apply -f config/dev-cm-graphql.yaml
-kubectl apply -f config/dev-cm-pchclient-parser.yaml
-kubectl apply -f config/dev-cm-postgresql-db.yaml
-kubectl apply -f config/dev-configmap.yaml
-kubectl apply -f config/dev-secrets.yaml
-kubectl apply -f config/ss-postgresql-db.yaml
-kubectl apply -f config/srv-graphql.yaml
-kubectl apply -f config/srv-postgresql-db.yaml
-kubectl apply -f config/srv-pchclient-ui.yaml
-kubectl apply -f config/dpl-graphql.yaml
-kubectl apply -f config/dpl-pchclient-parser.yaml
-kubectl apply -f config/dpl-pchclient-ui.yaml
-kubectl apply -f config/dev-ingress.yaml
+kubectl apply -f config
 ```
 
 ## Check the status of deployment
@@ -59,24 +46,30 @@ kubectl get pods
 - [http://hasura.local:8080](http://hasura.local:8080)
 - [http://pchclientui.local:8080](http://pchclientui.local:8080)
 
+## Monitoring
+
+The suggested monitoring tools for kubernetes is Prometheus/Grafana which can be installed using helm:
+
+```bash
+# Install prometheus stack
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+
+# Get grafana default password
+kubectl get secret --namespace monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+# Get access to grafana using the http://localhost:8001 (u:admin/p:<as retrieved with previous command>)
+kubectl port-forward svc/kube-prometheus-stack-grafana 8001:80 -n monitoring
+```
+
+Check some sample monitoring screenshots [here](./screenshots)
+
 ## Various helper commands
 
 ```bash
 # Pull image inside a node
 crictl pull nginx
 
-# Various commands
+# Visit the UIs using port forward
 kubectl port-forward svc/graphql 8081:8080 -n pchclient-dev
 kubectl port-forward svc/pchclient-ui 8083:80 -n pchclient-dev
-
-kubectl port-forward svc/kubernetes-dashboard 8000:8000 -n kubernetes-dashboard
-kubectl port-forward svc/kube-prometheus-stack-grafana 8001:80 -n default
-
-# Install prometheus stack
-helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack
-
-# Get grafana default password
-kubectl get secret --namespace default kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-
-
 ```

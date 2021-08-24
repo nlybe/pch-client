@@ -13,53 +13,63 @@ updates records in the `IXP_SERVER_DATA` table. The parser is configured by defa
 UI service contains a React app which is served using nginx. The JS application is using Apollo 
 GraphQL library to connect to Hasura and update UI with realtime data.
 
+## Installation and Running on Kubernetes
 
-# Installation and Running
+Deploy on Kubernetes using helm as follows:
+
+```bash
+helm install pchclient helmcharts/pchclient 
+```
+
+## Installation and Running using Docker Compose
 
 1. Start all services using docker-compose:
 
-   ```
-   docker-compose up -d
-   ```
-   This step is expected to take long due to downloading the docker images of postgres, hasura 
-   and base images for golang and nginx on which the parser and ui service depend. This step will
-   build the `parser` docker image by building the golang app parser that was implemented using 
-   golang and the `ui` docker image by attaching the React app artifact into nginx image.
+```bash
+docker-compose up -d
+```
+
+This step is expected to take long due to downloading the docker images of postgres, hasura 
+and base images for golang and nginx on which the parser and ui service depend. This step will
+build the `parser` docker image by building the golang app parser that was implemented using 
+golang and the `ui` docker image by attaching the React app artifact into nginx image.
    
 
 2. Configure parser (./parser/config/parser.yml):
 
-   ```
-   parser:
-      server_limit: 50
-      protocol: IPv6                      # IPv4 or IPv6
-      ixp:
-      - DE-CIX Marseille
-       city:
-      - Marseille
-      country:
-      - France
-   ```
+```bash
+parser:
+   server_limit: 50
+   protocol: IPv6                      # IPv4 or IPv6
+   ixp:
+   - DE-CIX Marseille
+      city:
+   - Marseille
+   country:
+   - France
+```
    
 3. Open UI URL:
-   ```
-   http://localhost:8000/   
-   ```
-   
-   HTML & JS app presenting table with IXP server data receiving live updates. 
-   The table presents all IXP servers data stored in the database and receives updates 
-   from the database using WebSocket and Hasura GraphQL subscription.
+
+```bash
+http://localhost:8000/   
+```
+
+HTML & JS app presenting table with IXP server data receiving live updates. 
+The table presents all IXP servers data stored in the database and receives updates 
+from the database using WebSocket and Hasura GraphQL subscription.
 
 
 4. Stop all services:
 
-   ```
-   docker-compose stop/down
-   ```
+```bash
+docker-compose stop/down
+```
    
 5. Reset:
 
-   Delete database files.
-   ```
-   rm -r ./db/data/*
-   ```
+Delete database files.
+
+```bash
+rm -r ./db/data/*
+```
