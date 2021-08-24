@@ -3,8 +3,8 @@
 Install/upgrade the chart with following commands:
 
 ```bash
-helm install pchclient . 
-helm upgrade pchclient . 
+helm install pchclient . -n pchclient-dev --create-namespace
+helm upgrade pchclient . -n pchclient-dev
 ```
 
 Check pods status

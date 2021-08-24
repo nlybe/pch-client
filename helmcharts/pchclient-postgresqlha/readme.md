@@ -3,7 +3,7 @@
 ```bash
 helm dep update .
 
-helm install pchclient . 
+helm install pchclient . -n pchclient-dev --create-namespace
 helm upgrade pchclient . -n pchclient-dev
 ```
 
